@@ -1,5 +1,5 @@
 # Kotraction
-A library for handling discord intraction (aka slash command)
+Kotlin library for handling discord interactions
  
 **This library is under development**
 
