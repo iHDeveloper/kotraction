@@ -18,6 +18,8 @@ class Kotraction(
         private val slashCommands: SlashCommands? = null,
         private val bot: Boolean = false
 ) {
+    private var isFetched: Boolean = false
+
     init {
         FuelManager.instance.run {
             basePath = DISCORD_ENDPOINT
@@ -52,6 +54,8 @@ class Kotraction(
                 Logger.warning("Failed! (StatusCode=${response.statusCode}). It's recommend to register the command!")
             })
         }
+
+        isFetched = true
     }
 
     fun registerCommands() {
@@ -80,6 +84,30 @@ class Kotraction(
                     Logger.error("Failed! (StatusCode=${response.statusCode}) while registering guild command /${command.name} (id=${it.key})")
                     error(fuelError)
                 })
+            }
+        }
+    }
+
+    fun deleteCommands() {
+        if (!isFetched)
+            error("Failed to fetch commands! Commands data needs to be fetched first!")
+
+        Logger.info("Deleting commands for ${slashCommands?.guildCommands?.size} guilds...")
+        slashCommands?.guildCommands?.forEach { id, commands ->
+            Logger.info("Deleting guild commands for id=$id")
+
+            commands.forEach {
+                Logger.info("Deleting guild command /${it.name} (id=${it.id})")
+
+                val (_, response, _) = Fuel.delete("/applications/$applicationId/guilds/$id/commands/${it.id}")
+                    .response()
+
+                val code = response.statusCode
+                if (code == 204) {
+                    Logger.info("Guild command has been successfully deleted!")
+                } else {
+                    Logger.warning("Failed to delete the command! (StatusCode=${code}")
+                }
             }
         }
     }
