@@ -22,15 +22,14 @@ allprojects {
     dependencies {
         if (project != rootProject) {
             implementation(kotlin("stdlib"))
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-            implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
-            implementation("com.github.kittinunf.fuel:fuel-kotlinx-serialization:$fuelVersion")
+            compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
             implementation(rootProject)
         } else {
             compileOnly(kotlin("stdlib"))
-            compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-            compileOnly("com.github.kittinunf.fuel:fuel:$fuelVersion")
-            compileOnly("com.github.kittinunf.fuel:fuel-kotlinx-serialization:$fuelVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+            implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
+            implementation("com.github.kittinunf.fuel:fuel-kotlinx-serialization:$fuelVersion")
+            implementation("org.abstractj.kalium:kalium:0.8.0")
         }
     }
 
