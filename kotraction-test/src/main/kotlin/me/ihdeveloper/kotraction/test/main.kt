@@ -2,6 +2,12 @@
 
 package me.ihdeveloper.kotraction.test
 
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -46,6 +52,15 @@ fun main(args: Array<String>) {
                 "delete-commands" -> {
                     println("Deleting slash guild commands...")
                     deleteCommands()
+                }
+                "listener" -> {
+                    embeddedServer(Netty, 80) {
+                        routing {
+                            get("/") {
+                                call.respondText("Hello World", ContentType.Text.Plain)
+                            }
+                        }
+                    }.start(wait = true)
                 }
                 else -> {
                     exitProcess(-1)

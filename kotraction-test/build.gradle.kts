@@ -1,3 +1,8 @@
+val ktorVersion = "1.5.0"
+
+dependencies {
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+}
 
 tasks {
     jar {

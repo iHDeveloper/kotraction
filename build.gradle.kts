@@ -15,6 +15,7 @@ allprojects {
     version = "0.1-dev"
 
     repositories {
+        jcenter()
         mavenCentral()
     }
 
@@ -34,6 +35,15 @@ allprojects {
     }
 
     tasks {
+
+        compileKotlin {
+            kotlinOptions.jvmTarget = "1.8"
+        }
+
+        compileTestKotlin {
+            kotlinOptions.jvmTarget = "1.8"
+        }
+
         shadowJar {
             dependsOn("build")
 
