@@ -2,8 +2,10 @@ package me.ihdeveloper.kotraction
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelManager
+import com.github.kittinunf.fuel.serialization.responseObject
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import me.ihdeveloper.kotraction.utils.Logger
 
 private typealias GuildID = String
 
@@ -18,32 +20,35 @@ class Kotraction(
     init {
         FuelManager.instance.run {
             basePath = DISCORD_ENDPOINT
+            baseHeaders = mapOf(
+                    "Content-Type" to "application/json",
+                    "User-Agent" to "Kotraction (https://github.com/iHDeveloper/kotraction, 0.1-dev)",
+                    "Authorization" to "${if(bot) "Bot" else "Bearer"} $token",
+            )
         }
     }
 
     fun registerCommands() {
-        println("[Kotraction/Engine] Registering commands for ${slashCommands?.guildCommands?.size} guilds...")
+        Logger.info("Registering commands for ${slashCommands?.guildCommands?.size} guilds...")
 
         slashCommands?.guildCommands?.forEach {
             it.value.forEach { command ->
-                println("[Kotraction/Engine] Registering guild command /${command.name}... (id=${it.key})")
+                Logger.info("Registering guild command /${command.name}... (id=${it.key})")
 
-                val body = HTTPSlashCommandsRegisterData(command.name, command.description)
+                val body = HTTPRegisterCommand(command.name, command.description)
 
-                val (_, response, _) = Fuel.post("/applications/$applicationId/guilds/${it.key}/commands")
-                    .header("Authorization", "${if(bot) "Bot" else "Bearer"} $token")
-                    .header("Content-Type", "application/json")
-                    .header("User-Agent", "Kotraction (https://github.com/iHDeveloper/kotraction, 0.1-dev)")
+                val (_, response, result) = Fuel.post("/applications/$applicationId/guilds/${it.key}/commands")
                     .body(Json.encodeToString(body))
-                    .response()
+                    .responseObject<ApplicationSlashCommand>(json = Json { ignoreUnknownKeys = true })
 
-                val code = response.statusCode
-                if (code == 201) {
-                    println("[Kotraction/Engine] Successfully! Registered guild command /${command.name} (id=${it.key})")
-                } else {
-                    println("[Kotraction/Engine] Failed! (StatusCode=${code}) Registering guild command /${command.name} (id=${it.key})")
-                    println(response.responseMessage)
-                }
+                result.fold({ applicationSlashCommand ->
+                    command.id = applicationSlashCommand.id
+
+                    Logger.info("Successfully! Registered guild command with id=${command.id}")
+                }, { fuelError ->
+                    Logger.error("Failed! (StatusCode=${response.statusCode}) Registering guild command /${command.name} (id=${it.key})")
+                    error(fuelError)
+                })
             }
         }
     }
@@ -69,6 +74,8 @@ abstract class Command(
     val name: String,
 ) {
     var description: String = ""
+
+    internal lateinit var id: String
 }
 
 class GuildCommand(
