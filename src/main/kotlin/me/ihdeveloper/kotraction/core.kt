@@ -7,6 +7,8 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.ihdeveloper.kotraction.utils.Logger
+import org.abstractj.kalium.encoders.Encoder
+import org.abstractj.kalium.keys.VerifyKey
 
 private typealias GuildID = String
 
@@ -14,10 +16,13 @@ internal const val DISCORD_ENDPOINT = "https://discord.com/api/v8"
 
 class Kotraction(
         private val applicationId: String,
+        private val publicKey: String,
         private val token: String,
         private val slashCommands: SlashCommands? = null,
         private val bot: Boolean = false
 ) {
+    private val verifyKey = VerifyKey(publicKey, Encoder.HEX)
+
     private var isFetched: Boolean = false
 
     init {
@@ -30,6 +35,8 @@ class Kotraction(
             )
         }
     }
+
+    fun verify(timestamp: String, body: String, signature: String): Boolean = verifyKey.verify(timestamp + body, signature, Encoder.HEX)
 
     fun fetchCommands() {
         Logger.info("Fetching commands for ${slashCommands?.guildCommands?.size} guilds...")

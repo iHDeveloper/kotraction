@@ -18,6 +18,7 @@ import kotlin.system.exitProcess
 @Serializable
 internal data class SecretData(
     val id: String,
+    val publicKey: String,
     val bot: Boolean,
     val token: String,
 )
@@ -34,6 +35,7 @@ fun main(args: Array<String>) {
 
     val kotraction = Kotraction(
             applicationId = secretData.id,
+            publicKey = secretData.publicKey,
             token = secretData.token,
             bot = secretData.bot,
             slashCommands = commands(),
