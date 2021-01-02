@@ -15,7 +15,7 @@ internal data class SecretData(
     val token: String,
 )
 
-fun main() {
+fun main(args: Array<String>) {
     println("Starting Kotration Test...")
 
     val secretFile = File("secret.json")
@@ -32,8 +32,19 @@ fun main() {
             slashCommands = commands(),
     )
 
-    println("Registering slash guild commands...")
-    kotraction.registerCommands()
+    kotraction.run {
+        println("Fetching slash guild commands...")
+        fetchCommands()
+
+        for (arg in args) {
+            when (arg.toLowerCase()) {
+                "register-commands" -> {
+                    println("Registering slash guild commands...")
+                    registerCommands()
+                }
+            }
+        }
+    }
 }
 
 internal fun readSecret(file: File): SecretData {
