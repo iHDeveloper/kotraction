@@ -7,6 +7,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import me.ihdeveloper.kotraction.Kotraction
 import java.io.File
+import kotlin.system.exitProcess
 
 @Serializable
 internal data class SecretData(
@@ -41,6 +42,13 @@ fun main(args: Array<String>) {
                 "register-commands" -> {
                     println("Registering slash guild commands...")
                     registerCommands()
+                }
+                "delete-commands" -> {
+                    println("Deleting slash guild commands...")
+                    deleteCommands()
+                }
+                else -> {
+                    exitProcess(-1)
                 }
             }
         }
