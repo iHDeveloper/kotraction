@@ -3,6 +3,7 @@ package me.ihdeveloper.kotraction
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.serialization.responseObject
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.ihdeveloper.kotraction.utils.Logger
@@ -28,6 +29,31 @@ class Kotraction(
         }
     }
 
+    fun fetchCommands() {
+        Logger.info("Fetching commands for ${slashCommands?.guildCommands?.size} guilds...")
+
+        slashCommands?.guildCommands?.forEach { id, commands ->
+            Logger.info("Fetching guild commands for id=$id")
+
+            val (_, response, result) = Fuel.get("/applications/$applicationId/guilds/$id/commands")
+                    .responseObject(ListSerializer(ApplicationSlashCommand.serializer()), json = Json { ignoreUnknownKeys = true })
+
+            result.fold({ rawCommands ->
+                rawCommands.forEach {
+                    for (command in commands) {
+                        if (command.name != it.name)
+                            continue
+
+                        command.id = it.id
+                        Logger.info("Loaded! Guild command /${command.name} (id=${command.id})")
+                    }
+                }
+            }, { _ ->
+                Logger.warning("Failed! (StatusCode=${response.statusCode}). It's recommend to register the command!")
+            })
+        }
+    }
+
     fun registerCommands() {
         Logger.info("Registering commands for ${slashCommands?.guildCommands?.size} guilds...")
 
@@ -41,12 +67,17 @@ class Kotraction(
                     .body(Json.encodeToString(body))
                     .responseObject<ApplicationSlashCommand>(json = Json { ignoreUnknownKeys = true })
 
-                result.fold({ applicationSlashCommand ->
-                    command.id = applicationSlashCommand.id
+                val code = response.statusCode
 
-                    Logger.info("Successfully! Registered guild command with id=${command.id}")
+                result.fold({ rawCommand ->
+                    command.id = rawCommand.id
+
+                    if (code == 201)
+                        Logger.info("Successfully! Registered guild command with id=${command.id}")
+                    else if (code == 200)
+                        Logger.info("Guild command is already registered! with id=${command.id}")
                 }, { fuelError ->
-                    Logger.error("Failed! (StatusCode=${response.statusCode}) Registering guild command /${command.name} (id=${it.key})")
+                    Logger.error("Failed! (StatusCode=${response.statusCode}) while registering guild command /${command.name} (id=${it.key})")
                     error(fuelError)
                 })
             }

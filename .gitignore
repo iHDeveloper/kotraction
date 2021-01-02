@@ -1,3 +1,6 @@
+# Secrets for the test module
+secret.json
+
 # Intellji Idea
 .idea
 *.iml
