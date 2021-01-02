@@ -4,6 +4,7 @@ package me.ihdeveloper.kotraction.test
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -59,6 +60,22 @@ fun main(args: Array<String>) {
                     embeddedServer(Netty, 80) {
                         routing {
                             get("/") {
+                                val timestamp = call.request.headers["X-Signature-Timestamp"]
+                                val signature = call.request.headers["X-Signature-Ed25519"]
+                                val body = call.receiveText()
+
+                                if (timestamp != null && signature != null) {
+                                    val verified = kotraction.verify(timestamp, body, signature)
+
+                                    if (verified) {
+                                        // TODO process the interaction
+                                    } else {
+                                        call.respond(HttpStatusCode.Unauthorized)
+                                    }
+                                } else {
+                                    call.respond(HttpStatusCode.Unauthorized)
+                                }
+
                                 call.respondText("Hello World", ContentType.Text.Plain)
                             }
                         }
