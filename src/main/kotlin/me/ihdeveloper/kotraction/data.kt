@@ -6,20 +6,29 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class Interaction(
         val id: String,
-        val type: InteractionType,
-        val data: ApplicationCommandInteractionData?,
-        @SerialName("guild_id") val guildId: String,
-        @SerialName("channel_id") val channelId: String,
         val token: String,
         val version: Int,
-)
+        val data: ApplicationCommandInteractionData? = null,
+        @SerialName("guild_id") val guildId: String? = null,
+        @SerialName("channel_id") val channelId: String? = null,
+        @SerialName("type") private val _type: Int,
+) {
+    val type: InteractionType
+        get() {
+            for (t in InteractionType.values()) {
+                if (t.id == _type)
+                    return t
+            }
+            return InteractionType.PING
+        }
+}
 
 @Serializable
 internal enum class InteractionType(
         val id: Int,
 ) {
     PING(1),
-    APPLICATION_COMMAND(2),
+    APPLICATION_COMMAND(2);
 }
 
 @Serializable
@@ -35,14 +44,12 @@ internal data class InteractionResponse(
 )
 
 @Serializable
-internal enum class InteractionResponseType(
-        val id: Int
-) {
-    PONG(1),
-    ACK(2),
-    CHANNEL_MESSAGE(3),
-    CHANNEL_MESSAGE_WITH_SOURCE(4),
-    ACK_WITH_SOURCE(5)
+internal enum class InteractionResponseType {
+    @SerialName("1") PONG,
+    @SerialName("2") ACK,
+    @SerialName("3") CHANNEL_MESSAGE,
+    @SerialName("4") CHANNEL_MESSAGE_WITH_SOURCE,
+    @SerialName("5") ACK_WITH_SOURCE;
 }
 
 @Serializable

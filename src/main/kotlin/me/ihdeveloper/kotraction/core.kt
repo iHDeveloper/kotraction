@@ -58,7 +58,10 @@ class Kotraction(
         return when(interaction.type) {
             InteractionType.PING -> { /* Responds to the ping interaction */
                 Logger.info("Received PING from discord! Sending PONG message...")
-                Json.encodeToString(ACK_RESPONSE)
+                Json.encodeToString(InteractionResponse(
+                        type = InteractionResponseType.PONG,
+                        data = null
+                ))
             }
             InteractionType.APPLICATION_COMMAND -> { /* Responds to the slash command interaction */
                 Json.encodeToString(onCommandInteraction(interaction))
@@ -96,7 +99,7 @@ class Kotraction(
                         Logger.info("Loaded! Guild command /${command.name} (id=${command.id})")
                     }
                 }
-            }, { _ ->
+            }, {
                 Logger.warning("Failed! (StatusCode=${response.statusCode}). It's recommend to register the command!")
             })
         }
@@ -163,6 +166,16 @@ class Kotraction(
 
         if (interaction.data == null) {
             Logger.warning("Received interaction without data! Responding ACK message...")
+            return ACK_RESPONSE
+        }
+
+        if (interaction.guildId == null) {
+            Logger.warning("Received interaction without guild id! Responding ACK message...")
+            return ACK_RESPONSE
+        }
+
+        if (interaction.channelId == null) {
+            Logger.warning("Received interaction without channel id! Responding ACK message...")
             return ACK_RESPONSE
         }
 
@@ -239,7 +252,7 @@ enum class CommandResponseType {
 
 class GuildCommand(
     name: String,
-    private val guildId: String,
+    val guildId: String,
 ) : Command(name) {
     var onInteraction: ((channelId: String) -> CommandResponse)? = null
 
