@@ -61,17 +61,33 @@ fun main(args: Array<String>) {
                     println("Listening on port ${settings.port}...")
                     embeddedServer(Netty, settings.port) {
                         routing {
+                            get("/") {
+                                println("[DEBUG] Received a test request! Responding to it now...")
+                                call.respond("Hello World!")
+                            }
                             post("/") {
+                                println("[DEBUG] Received a webhook request! Processing it now...")
+
                                 val timestamp = call.request.headers["X-Signature-Timestamp"]
+                                println("[DEBUG] Timestamp: $timestamp")
+
                                 val signature = call.request.headers["X-Signature-Ed25519"]
+                                println("[DEBUG] Signature: $signature")
+
                                 val body = call.receiveText()
+                                println("[DEBUG] body: $body")
 
                                 if (timestamp != null && signature != null) {
                                     try {
+                                        println("[DEBUG] Verifying the webhook...")
                                         val verified = kotraction.verifyInteraction(timestamp, body, signature)
+                                        println("[DEBUG] Verification status: $verified")
 
                                         if (verified) {
+                                            println("[DEBUG] Processing the interaction...")
                                             val response = kotraction.processInteraction(body)
+                                            println("[DEBUG] Responding to the interaction...")
+                                            println("[DEBUG] Response: $response")
                                             call.respond(response)
                                         } else {
                                             call.respond(HttpStatusCode.Unauthorized)
@@ -83,8 +99,6 @@ fun main(args: Array<String>) {
                                 } else {
                                     call.respond(HttpStatusCode.Unauthorized)
                                 }
-
-                                call.respondText("Hello World", ContentType.Text.Plain)
                             }
                         }
                     }.start(wait = true)
