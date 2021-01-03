@@ -15,6 +15,10 @@ private typealias GuildID = String
 
 internal const val DISCORD_ENDPOINT = "https://discord.com/api/v8"
 
+private val CUSTOM_JSON = Json {
+    ignoreUnknownKeys = true
+} 
+
 private val ACK_RESPONSE = InteractionResponse(
         type = InteractionResponseType.ACK,
         data = null
@@ -48,7 +52,7 @@ class Kotraction(
     }
 
     fun processInteraction(body: String): String {
-        val interaction = Json.decodeFromString<Interaction>(body)
+        val interaction = CUSTOM_JSON.decodeFromString<Interaction>(body)
 
         /* Ignore any unknown interactions */
         if (interaction.version != 1) {
@@ -58,13 +62,13 @@ class Kotraction(
         return when(interaction.type) {
             InteractionType.PING -> { /* Responds to the ping interaction */
                 Logger.info("Received PING from discord! Sending PONG message...")
-                Json.encodeToString(InteractionResponse(
+                CUSTOM_JSON.encodeToString(InteractionResponse(
                         type = InteractionResponseType.PONG,
                         data = null
                 ))
             }
             InteractionType.APPLICATION_COMMAND -> { /* Responds to the slash command interaction */
-                Json.encodeToString(onCommandInteraction(interaction))
+                CUSTOM_JSON.encodeToString(onCommandInteraction(interaction))
             }
         }
     }
@@ -117,7 +121,7 @@ class Kotraction(
                 val body = HTTPRegisterCommand(command.name, command.description)
 
                 val (_, response, result) = Fuel.post("/applications/$applicationId/guilds/${it.key}/commands")
-                    .body(Json.encodeToString(body))
+                    .body(CUSTOM_JSON.encodeToString(body))
                     .responseObject<ApplicationSlashCommand>(json = Json { ignoreUnknownKeys = true })
 
                 val code = response.statusCode
