@@ -185,7 +185,7 @@ class Kotraction(
             if (command.id != interaction.data.id)
                 continue
 
-            val response = command.onInteraction(interaction.guildId, interaction.channelId)
+            val response = command.onInteract(interaction.guildId, interaction.channelId)
 
             return when (response.type) {
                 CommandResponseType.ACK -> {
@@ -235,7 +235,7 @@ abstract class Command(
 
     internal lateinit var id: String
 
-    abstract fun onInteraction(guildId: String, channelId: String): CommandResponse
+    abstract fun onInteract(guildId: String, channelId: String): CommandResponse
 }
 
 data class CommandResponse(
@@ -254,15 +254,15 @@ class GuildCommand(
     name: String,
     val guildId: String,
 ) : Command(name) {
-    var onInteraction: ((channelId: String) -> CommandResponse)? = null
+    var onInteract: ((channelId: String) -> CommandResponse)? = null
 
-    override fun onInteraction(guildId: String, channelId: String): CommandResponse {
-        if (onInteraction == null) {
+    override fun onInteract(guildId: String, channelId: String): CommandResponse {
+        if (onInteract == null) {
             return CommandResponse(
                     type = CommandResponseType.ACK
             )
         }
 
-        return onInteraction!!.invoke(channelId)
+        return onInteract!!.invoke(channelId)
     }
 }
