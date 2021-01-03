@@ -67,9 +67,14 @@ class Kotraction(
     }
 
     fun verifyInteraction(timestamp: String, body: String, signature: String): Boolean {
-        val encodedPayload = (timestamp + body).toByteArray(Charsets.UTF_8)
-        val encodedSignature = Encoder.HEX.decode(signature)
-        return verifyKey.verify(encodedPayload, encodedSignature)
+        return try {
+            val encodedPayload = (timestamp + body).toByteArray(Charsets.UTF_8)
+            val encodedSignature = Encoder.HEX.decode(signature)
+
+            verifyKey.verify(encodedPayload, encodedSignature)
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun fetchCommands() {
