@@ -93,8 +93,8 @@ fun main(args: Array<String>) {
                                             call.respond(HttpStatusCode.Unauthorized)
                                         }
                                     } catch (exception: Exception) {
+                                        exception.printStackTrace()
                                         call.respond(HttpStatusCode.InternalServerError)
-                                        error(exception)
                                     }
                                 } else {
                                     call.respond(HttpStatusCode.Unauthorized)
