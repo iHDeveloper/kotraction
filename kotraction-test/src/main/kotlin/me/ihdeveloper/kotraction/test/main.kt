@@ -17,28 +17,29 @@ import java.io.File
 import kotlin.system.exitProcess
 
 @Serializable
-internal data class SecretData(
+internal data class Settings(
     val id: String,
     val publicKey: String,
-    val bot: Boolean,
     val token: String,
+    val bot: Boolean = true,
+    val port: Int = 80,
 )
 
 fun main(args: Array<String>) {
     println("Starting Kotration Test...")
 
-    val secretFile = File("secret.json")
+    val settingsFile = File("settings.json")
 
-    if (!secretFile.exists())
-        error("File [/'secret.json'] doesn't exist")
+    if (!settingsFile.exists())
+        error("File [/'settings.json'] doesn't exist")
 
-    val secretData = readSecret(secretFile)
+    val settings = readSettings(settingsFile)
 
     val kotraction = Kotraction(
-            applicationId = secretData.id,
-            publicKey = secretData.publicKey,
-            token = secretData.token,
-            bot = secretData.bot,
+            applicationId = settings.id,
+            publicKey = settings.publicKey,
+            token = settings.token,
+            bot = settings.bot,
             slashCommands = commands(),
     )
 
@@ -57,8 +58,8 @@ fun main(args: Array<String>) {
                     deleteCommands()
                 }
                 "listen" -> {
-                    println("Listening on port 80...")
-                    embeddedServer(Netty, 80) {
+                    println("Listening on port ${settings.port}...")
+                    embeddedServer(Netty, settings.port) {
                         routing {
                             post("/") {
                                 val timestamp = call.request.headers["X-Signature-Timestamp"]
@@ -96,7 +97,7 @@ fun main(args: Array<String>) {
     }
 }
 
-internal fun readSecret(file: File): SecretData {
+internal fun readSettings(file: File): Settings {
     val stream = file.inputStream()
     val serializedData = stream.bufferedReader().use { it.readText() }
     stream.close()

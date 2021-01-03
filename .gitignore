@@ -1,5 +1,5 @@
-# Secrets for the test module
-secret.json
+# Settings for the test module
+settings.json
 
 # Intellji Idea
 .idea
