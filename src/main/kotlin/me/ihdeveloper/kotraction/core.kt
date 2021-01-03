@@ -66,7 +66,11 @@ class Kotraction(
         }
     }
 
-    fun verifyInteraction(timestamp: String, body: String, signature: String): Boolean = verifyKey.verify(timestamp + body, signature, Encoder.HEX)
+    fun verifyInteraction(timestamp: String, body: String, signature: String): Boolean {
+        val encodedPayload = (timestamp + body).toByteArray(Charsets.UTF_8)
+        val encodedSignature = Encoder.HEX.decode(signature)
+        return verifyKey.verify(encodedPayload, encodedSignature)
+    }
 
     fun fetchCommands() {
         Logger.info("Fetching commands for ${slashCommands?.guildCommands?.size} guilds...")
