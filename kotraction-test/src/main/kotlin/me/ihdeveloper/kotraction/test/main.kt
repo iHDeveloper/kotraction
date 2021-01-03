@@ -90,6 +90,7 @@ fun main(args: Array<String>) {
                                             println("[DEBUG] Response: $response")
                                             call.respond(response)
                                         } else {
+                                            println("[WARNING] This request is not safe! Ignore processing this request...")
                                             call.respond(HttpStatusCode.Unauthorized)
                                         }
                                     } catch (exception: Exception) {
