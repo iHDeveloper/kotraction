@@ -56,21 +56,28 @@ fun main(args: Array<String>) {
                     println("Deleting slash guild commands...")
                     deleteCommands()
                 }
-                "listener" -> {
+                "listen" -> {
+                    println("Listening on port 80...")
                     embeddedServer(Netty, 80) {
                         routing {
-                            get("/") {
+                            post("/") {
                                 val timestamp = call.request.headers["X-Signature-Timestamp"]
                                 val signature = call.request.headers["X-Signature-Ed25519"]
                                 val body = call.receiveText()
 
                                 if (timestamp != null && signature != null) {
-                                    val verified = kotraction.verify(timestamp, body, signature)
+                                    try {
+                                        val verified = kotraction.verifyInteraction(timestamp, body, signature)
 
-                                    if (verified) {
-                                        // TODO process the interaction
-                                    } else {
-                                        call.respond(HttpStatusCode.Unauthorized)
+                                        if (verified) {
+                                            val response = kotraction.processInteraction(body)
+                                            call.respond(response)
+                                        } else {
+                                            call.respond(HttpStatusCode.Unauthorized)
+                                        }
+                                    } catch (exception: Exception) {
+                                        call.respond(HttpStatusCode.InternalServerError)
+                                        error(exception)
                                     }
                                 } else {
                                     call.respond(HttpStatusCode.Unauthorized)

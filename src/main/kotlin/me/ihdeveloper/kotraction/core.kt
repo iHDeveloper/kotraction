@@ -4,6 +4,7 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.serialization.responseObject
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.ihdeveloper.kotraction.utils.Logger
@@ -14,9 +15,19 @@ private typealias GuildID = String
 
 internal const val DISCORD_ENDPOINT = "https://discord.com/api/v8"
 
+private val ACK_RESPONSE = InteractionResponse(
+        type = InteractionResponseType.ACK,
+        data = null
+)
+
+private val ACK_WITH_SOURCE_RESPONSE = InteractionResponse(
+        type = InteractionResponseType.ACK_WITH_SOURCE,
+        data = null
+)
+
 class Kotraction(
         private val applicationId: String,
-        private val publicKey: String,
+        publicKey: String,
         private val token: String,
         private val slashCommands: SlashCommands? = null,
         private val bot: Boolean = false
@@ -36,7 +47,26 @@ class Kotraction(
         }
     }
 
-    fun verify(timestamp: String, body: String, signature: String): Boolean = verifyKey.verify(timestamp + body, signature, Encoder.HEX)
+    fun processInteraction(body: String): String {
+        val interaction = Json.decodeFromString<Interaction>(body)
+
+        /* Ignore any unknown interactions */
+        if (interaction.version != 1) {
+            error("Unknown Interaction version. (version=${interaction.version})")
+        }
+
+        return when(interaction.type) {
+            InteractionType.PING -> { /* Responds to the ping interaction */
+                Logger.info("Received PING from discord! Sending PONG message...")
+                Json.encodeToString(ACK_RESPONSE)
+            }
+            InteractionType.APPLICATION_COMMAND -> { /* Responds to the slash command interaction */
+                Json.encodeToString(onCommandInteraction(interaction))
+            }
+        }
+    }
+
+    fun verifyInteraction(timestamp: String, body: String, signature: String): Boolean = verifyKey.verify(timestamp + body, signature, Encoder.HEX)
 
     fun fetchCommands() {
         Logger.info("Fetching commands for ${slashCommands?.guildCommands?.size} guilds...")
@@ -118,6 +148,46 @@ class Kotraction(
             }
         }
     }
+
+    private fun onCommandInteraction(interaction: Interaction): InteractionResponse {
+        val commands = slashCommands?.guildCommands?.get(interaction.guildId) ?: return ACK_RESPONSE
+
+        if (interaction.data == null) {
+            Logger.warning("Received interaction without data! Responding ACK message...")
+            return ACK_RESPONSE
+        }
+
+        Logger.info("Invoking interaction with command /${interaction.data.name}... (id=${interaction.data.id})")
+
+        for (command in commands) {
+            if (command.id != interaction.data.id)
+                continue
+
+            val response = command.onInteraction(interaction.guildId, interaction.channelId)
+
+            return when (response.type) {
+                CommandResponseType.ACK -> {
+                    Logger.info("Responding with ACK message!")
+                    ACK_RESPONSE
+                }
+                CommandResponseType.ACK_WITH_SOURCE -> {
+                    Logger.info("Responding with ACK (with-source) message!")
+                    ACK_WITH_SOURCE_RESPONSE
+                }
+                CommandResponseType.MESSAGE -> InteractionResponse(
+                        type = InteractionResponseType.CHANNEL_MESSAGE,
+                        data = InteractionApplicationCommandCallbackData(content = response.content ?: "")
+                )
+                CommandResponseType.MESSAGE_WITH_SOURCE -> InteractionResponse(
+                        type = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data = InteractionApplicationCommandCallbackData(content = response.content ?: "")
+                )
+            }
+        }
+
+        Logger.warning("Command not found to invoke the interaction! Responding with ACK message...")
+        return ACK_RESPONSE
+    }
 }
 
 class SlashCommands {
@@ -142,9 +212,35 @@ abstract class Command(
     var description: String = ""
 
     internal lateinit var id: String
+
+    abstract fun onInteraction(guildId: String, channelId: String): CommandResponse
+}
+
+data class CommandResponse(
+        val type: CommandResponseType,
+        val content: String? = null,
+)
+
+enum class CommandResponseType {
+    ACK,
+    ACK_WITH_SOURCE,
+    MESSAGE,
+    MESSAGE_WITH_SOURCE;
 }
 
 class GuildCommand(
     name: String,
     private val guildId: String,
-) : Command(name)
+) : Command(name) {
+    var onInteraction: ((channelId: String) -> CommandResponse)? = null
+
+    override fun onInteraction(guildId: String, channelId: String): CommandResponse {
+        if (onInteraction == null) {
+            return CommandResponse(
+                    type = CommandResponseType.ACK
+            )
+        }
+
+        return onInteraction!!.invoke(channelId)
+    }
+}
