@@ -74,7 +74,7 @@ fun main(args: Array<String>) {
                                 val signature = call.request.headers["X-Signature-Ed25519"]
                                 println("[DEBUG] Signature: $signature")
 
-                                val body = call.receiveText()
+                                val body = String(call.receive<ByteArray>())
                                 println("[DEBUG] body: $body")
 
                                 if (timestamp != null && signature != null) {
