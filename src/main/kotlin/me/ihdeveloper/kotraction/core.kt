@@ -183,13 +183,18 @@ class Kotraction(
             return ACK_RESPONSE
         }
 
+        if (interaction.member == null) {
+            Logger.warning("Received interaction without guild member! Responding ACK message...")
+            return ACK_RESPONSE
+        }
+
         Logger.info("Invoking interaction with command /${interaction.data.name}... (id=${interaction.data.id})")
 
         for (command in commands) {
             if (command.id != interaction.data.id)
                 continue
 
-            val response = command.onInteract(interaction.guildId, interaction.channelId)
+            val response = command.onInteract(interaction.member, interaction.guildId, interaction.channelId)
 
             return when (response.type) {
                 CommandResponseType.ACK -> {
@@ -239,7 +244,7 @@ abstract class Command(
 
     internal lateinit var id: String
 
-    abstract fun onInteract(guildId: String, channelId: String): CommandResponse
+    abstract fun onInteract(member: DiscordGuildMember, guildId: String, channelId: String): CommandResponse
 }
 
 data class CommandResponse(
@@ -258,15 +263,15 @@ class GuildCommand(
     name: String,
     val guildId: String,
 ) : Command(name) {
-    var onInteract: ((channelId: String) -> CommandResponse)? = null
+    var onInteract: ((member: DiscordGuildMember, channelId: String) -> CommandResponse)? = null
 
-    override fun onInteract(guildId: String, channelId: String): CommandResponse {
+    override fun onInteract(member: DiscordGuildMember, guildId: String, channelId: String): CommandResponse {
         if (onInteract == null) {
             return CommandResponse(
                     type = CommandResponseType.ACK
             )
         }
 
-        return onInteract!!.invoke(channelId)
+        return onInteract!!.invoke(member, channelId)
     }
 }

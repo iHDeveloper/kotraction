@@ -9,6 +9,7 @@ internal data class Interaction(
         val token: String,
         val version: Int,
         val data: ApplicationCommandInteractionData? = null,
+        val member: DiscordGuildMember? = null,
         @SerialName("guild_id") val guildId: String? = null,
         @SerialName("channel_id") val channelId: String? = null,
         @SerialName("type") private val _type: Int,

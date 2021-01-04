@@ -10,12 +10,12 @@ private const val TEST_GUILD_ID = "211543198651121664"
 internal fun commands(): SlashCommands {
     return slashCommands {
         guildCommand("hello", TEST_GUILD_ID) {
-            description = "Prints hello world message"
+            description = "Says hello to you :D"
 
-            onInteract = {
+            onInteract = { member, _ ->
                 CommandResponse(
                         type = CommandResponseType.MESSAGE,
-                        content = "Hello World! o/ <#$it>"
+                        content = "Hello <@${member.user.id}>! o/"
                 )
             }
         }
