@@ -207,11 +207,17 @@ class Kotraction(
                 }
                 CommandResponseType.MESSAGE -> InteractionResponse(
                         type = InteractionResponseType.CHANNEL_MESSAGE,
-                        data = InteractionApplicationCommandCallbackData(content = response.content ?: "")
+                        data = InteractionApplicationCommandCallbackData(
+                                content = response.content ?: "",
+                                tts = response.tts
+                        )
                 )
                 CommandResponseType.MESSAGE_WITH_SOURCE -> InteractionResponse(
                         type = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                        data = InteractionApplicationCommandCallbackData(content = response.content ?: "")
+                        data = InteractionApplicationCommandCallbackData(
+                                content = response.content ?: "",
+                                tts = response.tts
+                        )
                 )
             }
         }
@@ -250,6 +256,7 @@ abstract class Command(
 data class CommandResponse(
         val type: CommandResponseType,
         val content: String? = null,
+        val tts: Boolean = false
 )
 
 enum class CommandResponseType {

@@ -56,7 +56,7 @@ internal enum class InteractionResponseType {
 @Serializable
 internal data class InteractionApplicationCommandCallbackData(
         val content: String,
-        val tts: Boolean = false,
+        val tts: Boolean,
 )
 
 @Serializable
