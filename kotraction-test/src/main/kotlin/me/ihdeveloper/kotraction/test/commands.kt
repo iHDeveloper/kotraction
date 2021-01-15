@@ -1,5 +1,6 @@
 package me.ihdeveloper.kotraction.test
 
+import me.ihdeveloper.kotraction.AllowedMentions
 import me.ihdeveloper.kotraction.CommandResponse
 import me.ihdeveloper.kotraction.CommandResponseType
 import me.ihdeveloper.kotraction.SlashCommands
@@ -15,7 +16,10 @@ internal fun commands(): SlashCommands {
             onInteract = { member, _ ->
                 CommandResponse(
                         type = CommandResponseType.MESSAGE,
-                        content = "Hello <@${member.user.id}>! o/"
+                        content = "Hello <@${member.user.id}>! o/",
+                        allowedMentions = AllowedMentions.Builder(
+                                mentionRepliedUser = true
+                        ).addUser(member.user.id).build()
                 )
             }
         }

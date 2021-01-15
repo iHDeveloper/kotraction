@@ -57,6 +57,7 @@ internal enum class InteractionResponseType {
 internal data class InteractionApplicationCommandCallbackData(
         val content: String,
         val tts: Boolean,
+        @SerialName("allowed_mentions") val allowedMentions: AllowedMentions?,
 )
 
 @Serializable

@@ -3,6 +3,8 @@ package me.ihdeveloper.kotraction
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.serialization.responseObject
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -209,14 +211,16 @@ class Kotraction(
                         type = InteractionResponseType.CHANNEL_MESSAGE,
                         data = InteractionApplicationCommandCallbackData(
                                 content = response.content ?: "",
-                                tts = response.tts
+                                tts = response.tts,
+                                allowedMentions = response.allowedMentions,
                         )
                 )
                 CommandResponseType.MESSAGE_WITH_SOURCE -> InteractionResponse(
                         type = InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                         data = InteractionApplicationCommandCallbackData(
                                 content = response.content ?: "",
-                                tts = response.tts
+                                tts = response.tts,
+                                allowedMentions = response.allowedMentions,
                         )
                 )
             }
@@ -256,7 +260,8 @@ abstract class Command(
 data class CommandResponse(
         val type: CommandResponseType,
         val content: String? = null,
-        val tts: Boolean = false
+        val tts: Boolean = false,
+        val allowedMentions: AllowedMentions? = null,
 )
 
 enum class CommandResponseType {
@@ -264,6 +269,74 @@ enum class CommandResponseType {
     ACK_WITH_SOURCE,
     MESSAGE,
     MESSAGE_WITH_SOURCE;
+}
+
+@Serializable
+data class AllowedMentions(
+        val parse: Array<String>,
+        val users: Array<String>,
+        val roles: Array<String>,
+        @SerialName("replied_user") private val repliedUser: Boolean,
+) {
+    class Builder(
+            private val isEveryoneAllowed: Boolean = false,
+            private val isUsersAllowed: Boolean = false,
+            private val isRolesAllowed: Boolean = false,
+            private val mentionRepliedUser: Boolean = false,
+    ) {
+        private val users = arrayListOf<String>()
+        private val roles = arrayListOf<String>()
+
+        fun addUser(user: String): Builder {
+            users.add(user)
+            return this
+        }
+
+        fun addRole(role: String): Builder {
+            roles.add(role)
+            return this
+        }
+
+        fun build(): AllowedMentions {
+            val rawParse = arrayListOf<String>()
+
+            if (isEveryoneAllowed)
+                rawParse.add("everyone")
+            if (isUsersAllowed)
+                rawParse.add("users")
+            if (isRolesAllowed)
+                rawParse.add("roles")
+
+            return AllowedMentions(
+                    parse = rawParse.toTypedArray(),
+                    users = users.toTypedArray(),
+                    roles = roles.toTypedArray(),
+                    repliedUser = mentionRepliedUser
+            )
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AllowedMentions
+
+        if (!parse.contentEquals(other.parse)) return false
+        if (!users.contentEquals(other.users)) return false
+        if (!roles.contentEquals(other.roles)) return false
+        if (repliedUser != other.repliedUser) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = parse.contentHashCode()
+        result = 31 * result + users.contentHashCode()
+        result = 31 * result + roles.contentHashCode()
+        result = 31 * result + repliedUser.hashCode()
+        return result
+    }
 }
 
 class GuildCommand(
