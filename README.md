@@ -3,6 +3,22 @@ Kotlin library for handling discord interactions
  
 **This library is under development**
 
+## TODO
+- Interactions
+- [x] Validating Interaction
+- [x] Processing Interaction
+- Slash Commands
+- [ ] Global Command
+- [x] Guild Command
+- [ ] Command Options
+- [ ] SubCommands
+- Slash Commands - Response
+- [x] Content
+- [x] TTS
+- [x] Allowed Mentions
+- [ ] Followup (Kotlin Coroutine)
+- [ ] Embeds 
+
 ## Example
 Examples of how to use the library 
 
