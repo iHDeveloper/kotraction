@@ -17,7 +17,7 @@ Kotlin library for handling discord interactions
 - [x] TTS
 - [x] Allowed Mentions
 - [ ] Followup (Kotlin Coroutine)
-- [ ] Embeds 
+- [x] Embeds 
 
 ## Example
 Examples of how to use the library 
@@ -42,7 +42,18 @@ internal fun commands(): SlashCommands {
                         /* Specify the allowed mentions (optional) */
                         allowedMentions = AllowedMentions.Builder(
                                 mentionRepliedUser = true
-                        ).addUser(member.user.id).build()
+                        ).addUser(member.user.id).build(),
+
+                        /* Set a list of embeds to be sent in the message (up to 10) */
+                        embeds = arrayOf(embedBuilder {
+                            type = DiscordEmbed.Type.RICH
+
+                            description = """
+                                This is an embed! \o/
+                            """.trimIndent()
+
+                            color = 15797517
+                        })
                 )
             }
         }

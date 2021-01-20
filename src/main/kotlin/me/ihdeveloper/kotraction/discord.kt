@@ -148,3 +148,7 @@ data class DiscordEmbed(
 fun embedBuilder(block: DiscordEmbed.() -> Unit): DiscordEmbed {
    return DiscordEmbed().apply { block(this) }
 }
+
+fun embedFieldsBuilder(block: ArrayList<DiscordEmbed.Field>.() -> Unit): Array<DiscordEmbed.Field> {
+    return arrayListOf<DiscordEmbed.Field>().apply { block(this) }.toTypedArray()
+}
