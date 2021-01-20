@@ -58,7 +58,33 @@ internal data class InteractionApplicationCommandCallbackData(
         val content: String,
         val tts: Boolean,
         @SerialName("allowed_mentions") val allowedMentions: AllowedMentions?,
-)
+        val embeds: Array<DiscordEmbed>?,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as InteractionApplicationCommandCallbackData
+
+        if (content != other.content) return false
+        if (tts != other.tts) return false
+        if (allowedMentions != other.allowedMentions) return false
+        if (embeds != null) {
+            if (other.embeds == null) return false
+            if (!embeds.contentEquals(other.embeds)) return false
+        } else if (other.embeds != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = content.hashCode()
+        result = 31 * result + tts.hashCode()
+        result = 31 * result + (allowedMentions?.hashCode() ?: 0)
+        result = 31 * result + (embeds?.contentHashCode() ?: 0)
+        return result
+    }
+}
 
 @Serializable
 internal data class HTTPRegisterCommand(

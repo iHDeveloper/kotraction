@@ -61,3 +61,90 @@ data class DiscordUser(
         @SerialName("premium_type") val premiumType: Int = 0,
         @SerialName("public_flags") val publicFlags: Int = 0,
 )
+
+@Serializable
+data class DiscordEmbed(
+        var title: String? = null,
+        var type: Type? = null,
+        var description: String? = null,
+        var url: String? = null,
+        var timestamp: String? = null,
+        var color: Int? = null,
+        var footer: Footer? = null,
+        var image: Image? = null,
+        var thumbnail: Thumbnail? = null,
+        var video: Video? = null,
+        var provider: Provider? = null,
+        var author: Author? = null,
+        var fields: Array<Field>? = null,
+) {
+    @Serializable
+    enum class Type {
+        @SerialName("rich") RICH,
+        @SerialName("image") IMAGE,
+        @SerialName("video") VIDEO,
+        @SerialName("gifv") GIFV,
+        @SerialName("article") ARTICLE,
+        @SerialName("link") LINK
+    }
+
+    @Serializable
+    data class Footer(
+            val text: String,
+            @SerialName("icon_url") val iconUrl: String? = null,
+            @SerialName("proxy_icon_url") val proxyIconUrl: String? = null,
+    )
+
+    @Serializable
+    data class Image(
+            val url: String? = null,
+            @SerialName("proxy_url") val proxyUrl: String? = null,
+            val height: Int? = null,
+            val width: Int? = null,
+    )
+
+    @Serializable
+    data class Thumbnail(
+            val url: String? = null,
+            @SerialName("proxy_url") val proxyUrl: String? = null,
+            val height: Int? = null,
+            val width: Int? = null,
+    )
+
+    @Serializable
+    data class Video(
+            val url: String? = null,
+            val height: Int? = null,
+            val width: Int? = null,
+    )
+
+    @Serializable
+    data class Provider(
+            val name: String? = null,
+            val url: String? = null,
+    )
+
+    @Serializable
+    data class Author(
+            val name: String? = null,
+            val url: String? = null,
+            @SerialName("icon_url") val iconUrl: String? = null,
+            @SerialName("proxy_icon_url") val proxyIconUrl: String? = null,
+    )
+
+    @Serializable
+    data class Field(
+            val name: String,
+            val value: String,
+            val inline: Boolean? = null,
+    )
+}
+
+/* Builder Functions */
+
+/**
+ * A builder for Discord embed
+ */
+fun embedBuilder(block: DiscordEmbed.() -> Unit): DiscordEmbed {
+   return DiscordEmbed().apply { block(this) }
+}

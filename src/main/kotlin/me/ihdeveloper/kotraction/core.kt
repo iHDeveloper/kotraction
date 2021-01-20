@@ -213,6 +213,7 @@ class Kotraction(
                                 content = response.content ?: "",
                                 tts = response.tts,
                                 allowedMentions = response.allowedMentions,
+                                embeds = response.embeds,
                         )
                 )
                 CommandResponseType.MESSAGE_WITH_SOURCE -> InteractionResponse(
@@ -221,6 +222,7 @@ class Kotraction(
                                 content = response.content ?: "",
                                 tts = response.tts,
                                 allowedMentions = response.allowedMentions,
+                                embeds = response.embeds,
                         )
                 )
             }
@@ -262,7 +264,35 @@ data class CommandResponse(
         val content: String? = null,
         val tts: Boolean = false,
         val allowedMentions: AllowedMentions? = null,
-)
+        val embeds: Array<DiscordEmbed>? = null,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CommandResponse
+
+        if (type != other.type) return false
+        if (content != other.content) return false
+        if (tts != other.tts) return false
+        if (allowedMentions != other.allowedMentions) return false
+        if (embeds != null) {
+            if (other.embeds == null) return false
+            if (!embeds.contentEquals(other.embeds)) return false
+        } else if (other.embeds != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = type.hashCode()
+        result = 31 * result + (content?.hashCode() ?: 0)
+        result = 31 * result + tts.hashCode()
+        result = 31 * result + (allowedMentions?.hashCode() ?: 0)
+        result = 31 * result + (embeds?.contentHashCode() ?: 0)
+        return result
+    }
+}
 
 enum class CommandResponseType {
     ACK,
